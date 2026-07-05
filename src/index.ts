@@ -5,6 +5,7 @@ import { z } from 'zod'
 
 import { user } from './modules/user'
 import { auth } from './modules/auth'
+import { example } from './modules/example'
 
 export const app = new Elysia()
 	.use(cors())
@@ -21,7 +22,11 @@ export const app = new Elysia()
 				tags: [
 					{ name: 'App', description: 'General endpoints' },
 					{ name: 'User', description: 'User management' },
-					{ name: 'Auth', description: 'Authentication' }
+					{ name: 'Auth', description: 'Authentication' },
+					{
+						name: 'Example',
+						description: 'Public vs protected route examples'
+					}
 				]
 			}
 		})
@@ -31,6 +36,7 @@ export const app = new Elysia()
 	})
 	.use(user)
 	.use(auth)
+	.use(example)
 
 if (import.meta.main) {
 	app.listen(3000)
