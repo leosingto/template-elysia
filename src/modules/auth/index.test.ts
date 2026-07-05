@@ -2,19 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import { app } from '../..'
 
-// Vitest workers run under Node, where the Bun global does not exist.
-// Provide a minimal Bun.password shim so the auth routes can hash and
-// verify passwords. Under a Bun-powered runner the real argon2id is used.
-if (typeof globalThis.Bun === 'undefined') {
-	;(globalThis as Record<string, unknown>).Bun = {
-		password: {
-			hash: async (password: string) => `test-hash:${password}`,
-			verify: async (password: string, hash: string) =>
-				hash === `test-hash:${password}`
-		}
-	}
-}
-
 const request = (path: string, init?: RequestInit) =>
 	app.handle(new Request(`http://localhost${path}`, init))
 
