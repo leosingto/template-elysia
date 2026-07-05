@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'vitest'
 
-import { app } from '../src'
+import { app } from '../..'
 
 const request = (path: string, init?: RequestInit) =>
 	app.handle(new Request(`http://localhost${path}`, init))
@@ -9,15 +9,6 @@ const json = (body: unknown, init?: RequestInit): RequestInit => ({
 	...init,
 	headers: { 'Content-Type': 'application/json', ...init?.headers },
 	body: JSON.stringify(body)
-})
-
-describe('Health', () => {
-	it('should return ok', async () => {
-		const res = await request('/health')
-
-		expect(res.status).toBe(200)
-		expect(await res.json()).toEqual({ status: 'ok' })
-	})
 })
 
 describe('User', () => {
