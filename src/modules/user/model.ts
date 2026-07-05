@@ -1,27 +1,20 @@
-import { t } from 'elysia'
+import { z } from 'zod'
 
-export const user = t.Object({
-	id: t.Number(),
-	name: t.String({ minLength: 1 }),
-	email: t.String({ format: 'email' })
+export const user = z.object({
+	id: z.number(),
+	name: z.string().min(1),
+	email: z.email()
 })
-export type User = typeof user.static
+export type User = z.infer<typeof user>
 
-export const createUser = t.Object({
-	name: t.String({ minLength: 1 }),
-	email: t.String({ format: 'email' })
+export const createUser = z.object({
+	name: z.string().min(1),
+	email: z.email()
 })
-export type CreateUser = typeof createUser.static
+export type CreateUser = z.infer<typeof createUser>
 
-export const userId = t.Object({
-	id: t.Number({ minimum: 1 })
+export const userId = z.object({
+	id: z.coerce.number().min(1)
 })
 
-export const notFound = t.Literal('User not found')
-
-export const models = {
-	user,
-	createUser,
-	userId,
-	notFound
-}
+export const notFound = z.literal('User not found')

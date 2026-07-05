@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { openapi } from '@elysiajs/openapi'
+import { z } from 'zod'
 
 import { user } from './modules/user'
 
@@ -8,6 +9,9 @@ export const app = new Elysia()
 	.use(cors())
 	.use(
 		openapi({
+			mapJsonSchema: {
+				zod: z.toJSONSchema
+			},
 			documentation: {
 				info: {
 					title: 'Elysia Template',
