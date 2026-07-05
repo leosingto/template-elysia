@@ -19,19 +19,21 @@ bun run dev
 | --- | --- |
 | `bun run dev` | Start with hot reload |
 | `bun run start` | Start the server |
-| `bun test` | Run unit tests |
+| `bun run test` | Run unit tests (Vitest) |
+| `bun run test:watch` | Run tests in watch mode |
 
 ## Project Structure
 
 ```
 src/
 ├── index.ts              # Server entry: plugins + module registration
+├── index.test.ts         # App-level tests via app.handle()
 └── modules/
     └── user/
         ├── index.ts      # Controller — Elysia instance, routing & validation
         ├── service.ts    # Business logic, decoupled from HTTP
-        └── model.ts      # TypeBox schemas, types, and reference models
-test/                     # Unit tests via app.handle()
+        ├── model.ts      # TypeBox schemas, types, and reference models
+        └── user.test.ts  # Module tests, co-located with the code
 ```
 
 Each module follows the Elysia convention:
