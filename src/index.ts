@@ -8,7 +8,13 @@ import { auth } from './modules/auth'
 import { example } from './modules/example'
 
 export const app = new Elysia()
-	.use(cors())
+	.use(
+		cors({
+			// Set ALLOWED_ORIGINS (comma-separated) before exposing this API —
+			// without it every origin is reflected, which is only safe for local dev.
+			origin: process.env.ALLOWED_ORIGINS?.split(',') ?? true
+		})
+	)
 	.use(
 		openapi({
 			mapJsonSchema: {
