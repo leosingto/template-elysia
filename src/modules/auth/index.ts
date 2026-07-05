@@ -27,6 +27,8 @@ export const auth = new Elysia({ prefix: '/auth', tags: ['Auth'] })
 				passwordHash
 			})
 
+			if (!created) return status(409, 'Email already registered' as const)
+
 			return status(201, AuthService.toPublic(created))
 		},
 		{

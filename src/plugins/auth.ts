@@ -3,10 +3,20 @@ import { jwt } from '@elysiajs/jwt'
 
 import { AuthService } from '../modules/auth/service'
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-do-not-use-in-production'
+// Fail closed: an unset NODE_ENV (common in bare Bun/Docker deploys) must not
+// silently fall back to the publicly-known dev secret.
+const NODE_ENV = process.env.NODE_ENV
+const isDevOrTest = NODE_ENV === 'development' || NODE_ENV === 'test'
 
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production')
-	throw new Error('JWT_SECRET must be set in production')
+if (!process.env.JWT_SECRET && !isDevOrTest)
+	throw new Error(
+		'JWT_SECRET must be set unless NODE_ENV is "development" or "test"'
+	)
+
+if (!process.env.JWT_SECRET && NODE_ENV === 'development')
+	console.warn('⚠️ JWT_SECRET is not set — using an insecure development-only fallback')
+
+const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-do-not-use-in-production'
 
 export const authPlugin = new Elysia({ name: 'auth-plugin' })
 	.use(

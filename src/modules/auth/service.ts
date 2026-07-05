@@ -20,7 +20,12 @@ export abstract class AuthService {
 		return this.users.find((user) => user.id === id)
 	}
 
-	static create(user: Omit<StoredAuthUser, 'id'>): StoredAuthUser {
+	// Re-checks the email at insert time: the controller's pre-check and the
+	// insert are separated by an await (password hashing), so two concurrent
+	// registrations could otherwise both pass the pre-check.
+	static create(user: Omit<StoredAuthUser, 'id'>): StoredAuthUser | undefined {
+		if (this.findByEmail(user.email)) return undefined
+
 		const created: StoredAuthUser = { id: this.nextId++, ...user }
 		this.users.push(created)
 
