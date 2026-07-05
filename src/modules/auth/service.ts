@@ -1,3 +1,5 @@
+import type { AuthUser } from './model'
+
 export interface StoredAuthUser {
 	id: number
 	name: string
@@ -23,5 +25,13 @@ export abstract class AuthService {
 		this.users.push(created)
 
 		return created
+	}
+
+	static toPublic(user: StoredAuthUser): AuthUser {
+		return {
+			id: user.id,
+			name: user.name,
+			email: user.email
+		}
 	}
 }

@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
-import { jwt } from '@elysiajs/jwt'
 
+import { authPlugin } from '../../plugins/auth'
 import { AuthService } from './service'
 import {
 	authUser,
@@ -11,28 +11,9 @@ import {
 	invalidCredentials,
 	unauthorized
 } from './model'
-import type { AuthUser } from './model'
-import type { StoredAuthUser } from './service'
-
-const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-do-not-use-in-production'
-
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production')
-	throw new Error('JWT_SECRET must be set in production')
-
-const toPublic = (user: StoredAuthUser): AuthUser => ({
-	id: user.id,
-	name: user.name,
-	email: user.email
-})
 
 export const auth = new Elysia({ prefix: '/auth', tags: ['Auth'] })
-	.use(
-		jwt({
-			name: 'jwt',
-			secret: JWT_SECRET,
-			exp: '7d'
-		})
-	)
+	.use(authPlugin)
 	.post(
 		'/register',
 		async ({ body, status }) => {
@@ -46,7 +27,7 @@ export const auth = new Elysia({ prefix: '/auth', tags: ['Auth'] })
 				passwordHash
 			})
 
-			return status(201, toPublic(created))
+			return status(201, AuthService.toPublic(created))
 		},
 		{
 			body: register,
@@ -73,7 +54,7 @@ export const auth = new Elysia({ prefix: '/auth', tags: ['Auth'] })
 
 			const token = await jwt.sign({ sub: String(user.id) })
 
-			return { token, user: toPublic(user) }
+			return { token, user: AuthService.toPublic(user) }
 		},
 		{
 			body: login,
@@ -84,30 +65,11 @@ export const auth = new Elysia({ prefix: '/auth', tags: ['Auth'] })
 			detail: { summary: 'Log in and receive a JWT' }
 		}
 	)
-	.get(
-		'/me',
-		async ({ headers, jwt, status }) => {
-			const authorization = headers.authorization
-
-			if (!authorization?.startsWith('Bearer '))
-				return status(401, 'Unauthorized' as const)
-
-			const payload = await jwt.verify(authorization.slice(7))
-
-			if (!payload || typeof payload.sub !== 'string')
-				return status(401, 'Unauthorized' as const)
-
-			const user = AuthService.findById(Number(payload.sub))
-
-			if (!user) return status(401, 'Unauthorized' as const)
-
-			return toPublic(user)
+	.get('/me', ({ user }) => user, {
+		auth: true,
+		response: {
+			200: authUser,
+			401: unauthorized
 		},
-		{
-			response: {
-				200: authUser,
-				401: unauthorized
-			},
-			detail: { summary: 'Get the current authenticated user' }
-		}
-	)
+		detail: { summary: 'Get the current authenticated user' }
+	})
