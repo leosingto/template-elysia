@@ -4,6 +4,7 @@ import { openapi } from '@elysiajs/openapi'
 import { z } from 'zod'
 
 import { user } from './modules/user'
+import { auth } from './modules/auth'
 
 export const app = new Elysia()
 	.use(cors())
@@ -19,7 +20,8 @@ export const app = new Elysia()
 				},
 				tags: [
 					{ name: 'App', description: 'General endpoints' },
-					{ name: 'User', description: 'User management' }
+					{ name: 'User', description: 'User management' },
+					{ name: 'Auth', description: 'Authentication' }
 				]
 			}
 		})
@@ -28,6 +30,7 @@ export const app = new Elysia()
 		detail: { tags: ['App'], summary: 'Health check' }
 	})
 	.use(user)
+	.use(auth)
 
 if (import.meta.main) {
 	app.listen(3000)
