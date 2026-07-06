@@ -1,5 +1,3 @@
-import { status } from 'elysia'
-
 import type { CreateUser, User } from './model'
 
 export abstract class UserService {
@@ -13,12 +11,8 @@ export abstract class UserService {
 		return this.users
 	}
 
-	static find(id: number) {
-		const found = this.users.find((user) => user.id === id)
-
-		if (!found) return status(404, 'User not found' as const)
-
-		return found
+	static find(id: number): User | undefined {
+		return this.users.find((user) => user.id === id)
 	}
 
 	static create(body: CreateUser): User {
@@ -28,10 +22,10 @@ export abstract class UserService {
 		return created
 	}
 
-	static remove(id: number) {
+	static remove(id: number): User | undefined {
 		const index = this.users.findIndex((user) => user.id === id)
 
-		if (index === -1) return status(404, 'User not found' as const)
+		if (index === -1) return undefined
 
 		const [removed] = this.users.splice(index, 1)
 

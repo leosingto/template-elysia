@@ -1,30 +1,32 @@
 import { Elysia } from 'elysia'
 
 import { authPlugin } from '../../plugins/auth'
+import { ok, successResponse } from '../../lib/response'
 import { publicMessage, protectedMessage, unauthorized } from './model'
 
 export const example = new Elysia({ prefix: '/example', tags: ['Example'] })
 	.use(authPlugin)
 	.get(
 		'/public',
-		() => ({ message: 'This route is public — no token required' }),
+		() => ok({ message: 'This route is public — no token required' }),
 		{
 			response: {
-				200: publicMessage
+				200: successResponse(publicMessage)
 			},
 			detail: { summary: 'Public route, no authentication needed' }
 		}
 	)
 	.get(
 		'/protected',
-		({ user }) => ({
-			message: `Hello ${user.name}, you are authenticated`,
-			user
-		}),
+		({ user }) =>
+			ok({
+				message: `Hello ${user.name}, you are authenticated`,
+				user
+			}),
 		{
 			auth: true,
 			response: {
-				200: protectedMessage,
+				200: successResponse(protectedMessage),
 				401: unauthorized
 			},
 			detail: {

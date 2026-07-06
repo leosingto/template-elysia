@@ -13,4 +13,4 @@ export const protectedMessage = z.object({
 })
 export type ProtectedMessage = z.infer<typeof protectedMessage>
 
-export const unauthorized = z.literal('Unauthorized')
+export { unauthorized } from '../../lib/response'
