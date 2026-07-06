@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { errorResponse } from '../../lib/response'
+
 export const authUser = z.object({
 	id: z.number(),
 	name: z.string().min(1),
@@ -26,8 +28,8 @@ export const loginResponse = z.object({
 })
 export type LoginResponse = z.infer<typeof loginResponse>
 
-export const emailTaken = z.literal('Email already registered')
+export const emailTaken = errorResponse('EMAIL_TAKEN')
 
-export const invalidCredentials = z.literal('Invalid credentials')
+export const invalidCredentials = errorResponse('INVALID_CREDENTIALS')
 
-export const unauthorized = z.literal('Unauthorized')
+export { unauthorized } from '../../lib/response'

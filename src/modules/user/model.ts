@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { errorResponse } from '../../lib/response'
+
 export const user = z.object({
 	id: z.number(),
 	name: z.string().min(1),
@@ -17,4 +19,4 @@ export const userId = z.object({
 	id: z.coerce.number().min(1)
 })
 
-export const notFound = z.literal('User not found')
+export const notFound = errorResponse('NOT_FOUND')

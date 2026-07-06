@@ -2,6 +2,7 @@ import { Elysia } from 'elysia'
 import { jwt } from '@elysiajs/jwt'
 
 import { AuthService } from '../modules/auth/service'
+import { err } from '../lib/response'
 
 // Fail closed: an unset NODE_ENV (common in bare Bun/Docker deploys) must not
 // silently fall back to the publicly-known dev secret.
@@ -32,16 +33,16 @@ export const authPlugin = new Elysia({ name: 'auth-plugin' })
 				const authorization = headers.authorization
 
 				if (!authorization?.startsWith('Bearer '))
-					return status(401, 'Unauthorized' as const)
+					return status(401, err('UNAUTHORIZED', 'Unauthorized'))
 
 				const payload = await jwt.verify(authorization.slice(7))
 
 				if (!payload || typeof payload.sub !== 'string')
-					return status(401, 'Unauthorized' as const)
+					return status(401, err('UNAUTHORIZED', 'Unauthorized'))
 
 				const user = AuthService.findById(Number(payload.sub))
 
-				if (!user) return status(401, 'Unauthorized' as const)
+				if (!user) return status(401, err('UNAUTHORIZED', 'Unauthorized'))
 
 				return { user: AuthService.toPublic(user) }
 			}

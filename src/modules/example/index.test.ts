@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { app } from '../..'
 
-const request =(path: string, init?: RequestInit) =>
+const request = (path: string, init?: RequestInit) =>
 	app.handle(new Request(`http://localhost${path}`, init))
 
 const json = (body: unknown, init?: RequestInit): RequestInit => ({
@@ -23,10 +23,15 @@ const login = async (email: string) => {
 		json({ email, password: 'password123' })
 	)
 
-	return (await res.json()) as {
-		token: string
-		user: { id: number; name: string; email: string }
+	const { data } = (await res.json()) as {
+		success: true
+		data: {
+			token: string
+			user: { id: number; name: string; email: string }
+		}
 	}
+
+	return data
 }
 
 describe('Example', () => {
@@ -36,7 +41,10 @@ describe('Example', () => {
 
 			expect(res.status).toBe(200)
 			expect(await res.json()).toEqual({
-				message: 'This route is public — no token required'
+				success: true,
+				data: {
+					message: 'This route is public — no token required'
+				}
 			})
 		})
 
@@ -59,8 +67,11 @@ describe('Example', () => {
 
 			expect(res.status).toBe(200)
 			expect(await res.json()).toEqual({
-				message: `Hello ${user.name}, you are authenticated`,
-				user
+				success: true,
+				data: {
+					message: `Hello ${user.name}, you are authenticated`,
+					user
+				}
 			})
 		})
 
@@ -68,7 +79,10 @@ describe('Example', () => {
 			const res = await request('/example/protected')
 
 			expect(res.status).toBe(401)
-			expect(await res.text()).toBe('Unauthorized')
+			expect(await res.json()).toEqual({
+				success: false,
+				error: { code: 'UNAUTHORIZED', message: 'Unauthorized' }
+			})
 		})
 
 		it('should return 401 for a malformed token', async () => {
@@ -77,7 +91,10 @@ describe('Example', () => {
 			})
 
 			expect(res.status).toBe(401)
-			expect(await res.text()).toBe('Unauthorized')
+			expect(await res.json()).toEqual({
+				success: false,
+				error: { code: 'UNAUTHORIZED', message: 'Unauthorized' }
+			})
 		})
 
 		it('should return 401 for a wrongly-signed token', async () => {
@@ -91,7 +108,10 @@ describe('Example', () => {
 			})
 
 			expect(res.status).toBe(401)
-			expect(await res.text()).toBe('Unauthorized')
+			expect(await res.json()).toEqual({
+				success: false,
+				error: { code: 'UNAUTHORIZED', message: 'Unauthorized' }
+			})
 		})
 	})
 })

@@ -17,11 +17,8 @@ describe('UserService', () => {
 		})
 	})
 
-	it('should return a 404 status for an unknown id', () => {
-		expect(UserService.find(999)).toMatchObject({
-			code: 404,
-			response: 'User not found'
-		})
+	it('should return undefined for an unknown id', () => {
+		expect(UserService.find(999)).toBeUndefined()
 	})
 
 	it('should create a user with an incrementing id', () => {
@@ -48,10 +45,7 @@ describe('UserService', () => {
 		expect(UserService.list()).not.toContainEqual(created)
 	})
 
-	it('should return a 404 status when removing an unknown id', () => {
-		expect(UserService.remove(999)).toMatchObject({
-			code: 404,
-			response: 'User not found'
-		})
+	it('should return undefined when removing an unknown id', () => {
+		expect(UserService.remove(999)).toBeUndefined()
 	})
 })
