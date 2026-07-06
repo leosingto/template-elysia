@@ -32,9 +32,12 @@ describe('Auth', () => {
 
 			expect(res.status).toBe(201)
 			expect(await res.json()).toEqual({
-				id: expect.any(Number),
-				name: 'Test User',
-				email: 'register@example.com'
+				success: true,
+				data: {
+					id: expect.any(Number),
+					name: 'Test User',
+					email: 'register@example.com'
+				}
 			})
 		})
 
@@ -43,10 +46,14 @@ describe('Auth', () => {
 
 			expect(res.status).toBe(201)
 
-			const body = (await res.json()) as Record<string, unknown>
-			expect(body).not.toHaveProperty('password')
-			expect(body).not.toHaveProperty('passwordHash')
-			expect(Object.keys(body).sort()).toEqual(['email', 'id', 'name'])
+			const body = (await res.json()) as {
+				success: true
+				data: Record<string, unknown>
+			}
+			expect(Object.keys(body).sort()).toEqual(['data', 'success'])
+			expect(body.data).not.toHaveProperty('password')
+			expect(body.data).not.toHaveProperty('passwordHash')
+			expect(Object.keys(body.data).sort()).toEqual(['email', 'id', 'name'])
 		})
 
 		it('should return 409 for a duplicate email', async () => {
@@ -56,7 +63,13 @@ describe('Auth', () => {
 			const second = await registerUser({ email: 'dupe@example.com' })
 
 			expect(second.status).toBe(409)
-			expect(await second.text()).toBe('Email already registered')
+			expect(await second.json()).toEqual({
+				success: false,
+				error: {
+					code: 'EMAIL_TAKEN',
+					message: 'Email already registered'
+				}
+			})
 		})
 
 		it('should reject a short password', async () => {
@@ -86,13 +99,16 @@ describe('Auth', () => {
 
 			expect(res.status).toBe(200)
 
-			const body = (await res.json()) as {
-				token: string
-				user: { id: number; name: string; email: string }
+			const { data } = (await res.json()) as {
+				success: true
+				data: {
+					token: string
+					user: { id: number; name: string; email: string }
+				}
 			}
 
-			expect(body.token.split('.')).toHaveLength(3)
-			expect(body.user).toEqual({
+			expect(data.token.split('.')).toHaveLength(3)
+			expect(data.user).toEqual({
 				id: expect.any(Number),
 				name: 'Login User',
 				email: 'login@example.com'
@@ -106,7 +122,13 @@ describe('Auth', () => {
 			)
 
 			expect(res.status).toBe(401)
-			expect(await res.text()).toBe('Invalid credentials')
+			expect(await res.json()).toEqual({
+				success: false,
+				error: {
+					code: 'INVALID_CREDENTIALS',
+					message: 'Invalid credentials'
+				}
+			})
 		})
 
 		it('should return 401 for a wrong password', async () => {
@@ -121,7 +143,13 @@ describe('Auth', () => {
 			)
 
 			expect(res.status).toBe(401)
-			expect(await res.text()).toBe('Invalid credentials')
+			expect(await res.json()).toEqual({
+				success: false,
+				error: {
+					code: 'INVALID_CREDENTIALS',
+					message: 'Invalid credentials'
+				}
+			})
 		})
 	})
 
@@ -134,10 +162,15 @@ describe('Auth', () => {
 				json({ email, password: 'password123' })
 			)
 
-			return (await res.json()) as {
-				token: string
-				user: { id: number; name: string; email: string }
+			const { data } = (await res.json()) as {
+				success: true
+				data: {
+					token: string
+					user: { id: number; name: string; email: string }
+				}
 			}
+
+			return data
 		}
 
 		it('should return the current user with a valid token', async () => {
@@ -148,14 +181,17 @@ describe('Auth', () => {
 			})
 
 			expect(res.status).toBe(200)
-			expect(await res.json()).toEqual(user)
+			expect(await res.json()).toEqual({ success: true, data: user })
 		})
 
 		it('should return 401 without an Authorization header', async () => {
 			const res = await request('/auth/me')
 
 			expect(res.status).toBe(401)
-			expect(await res.text()).toBe('Unauthorized')
+			expect(await res.json()).toEqual({
+				success: false,
+				error: { code: 'UNAUTHORIZED', message: 'Unauthorized' }
+			})
 		})
 
 		it('should return 401 for a malformed token', async () => {
@@ -164,7 +200,10 @@ describe('Auth', () => {
 			})
 
 			expect(res.status).toBe(401)
-			expect(await res.text()).toBe('Unauthorized')
+			expect(await res.json()).toEqual({
+				success: false,
+				error: { code: 'UNAUTHORIZED', message: 'Unauthorized' }
+			})
 		})
 
 		it('should return 401 for a wrongly-signed token', async () => {
@@ -178,7 +217,10 @@ describe('Auth', () => {
 			})
 
 			expect(res.status).toBe(401)
-			expect(await res.text()).toBe('Unauthorized')
+			expect(await res.json()).toEqual({
+				success: false,
+				error: { code: 'UNAUTHORIZED', message: 'Unauthorized' }
+			})
 		})
 	})
 })

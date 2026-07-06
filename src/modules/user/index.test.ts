@@ -16,9 +16,10 @@ describe('User', () => {
 		const res = await request('/users/')
 
 		expect(res.status).toBe(200)
-		expect(await res.json()).toEqual([
-			{ id: 1, name: 'Saltyaom', email: 'saltyaom@elysiajs.com' }
-		])
+		expect(await res.json()).toEqual({
+			success: true,
+			data: [{ id: 1, name: 'Saltyaom', email: 'saltyaom@elysiajs.com' }]
+		})
 	})
 
 	it('should get a user by id', async () => {
@@ -26,9 +27,12 @@ describe('User', () => {
 
 		expect(res.status).toBe(200)
 		expect(await res.json()).toEqual({
-			id: 1,
-			name: 'Saltyaom',
-			email: 'saltyaom@elysiajs.com'
+			success: true,
+			data: {
+				id: 1,
+				name: 'Saltyaom',
+				email: 'saltyaom@elysiajs.com'
+			}
 		})
 	})
 
@@ -36,13 +40,23 @@ describe('User', () => {
 		const res = await request('/users/999')
 
 		expect(res.status).toBe(404)
-		expect(await res.text()).toBe('User not found')
+		expect(await res.json()).toEqual({
+			success: false,
+			error: { code: 'NOT_FOUND', message: 'User not found' }
+		})
 	})
 
 	it('should validate params', async () => {
 		const res = await request('/users/not-a-number')
 
 		expect(res.status).toBe(422)
+
+		const body = (await res.json()) as {
+			success: boolean
+			error: { code: string }
+		}
+		expect(body.success).toBe(false)
+		expect(body.error.code).toBe('VALIDATION')
 	})
 
 	it('should create then delete a user', async () => {
@@ -53,10 +67,9 @@ describe('User', () => {
 
 		expect(created.status).toBe(201)
 
-		const user = (await created.json()) as {
-			id: number
-			name: string
-			email: string
+		const { data: user } = (await created.json()) as {
+			success: true
+			data: { id: number; name: string; email: string }
 		}
 		expect(user).toMatchObject({
 			name: 'Elysia',
@@ -66,7 +79,7 @@ describe('User', () => {
 		const removed = await request(`/users/${user.id}`, { method: 'DELETE' })
 
 		expect(removed.status).toBe(200)
-		expect(await removed.json()).toEqual(user)
+		expect(await removed.json()).toEqual({ success: true, data: user })
 
 		const gone = await request(`/users/${user.id}`)
 		expect(gone.status).toBe(404)
@@ -79,5 +92,12 @@ describe('User', () => {
 		)
 
 		expect(res.status).toBe(422)
+
+		const body = (await res.json()) as {
+			success: boolean
+			error: { code: string }
+		}
+		expect(body.success).toBe(false)
+		expect(body.error.code).toBe('VALIDATION')
 	})
 })
